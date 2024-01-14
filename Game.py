@@ -52,6 +52,7 @@ bala_visible = False
 
 #! Varibles del Puntaje
 puntaje = 0
+puntaje_maximo = 0
 fuente = pygame.font.Font("assets/orange juice 2.0.ttf", 32)
 puntaje_x = 10
 puntaje_y = 10
@@ -72,6 +73,10 @@ def texto_inicial():
 #! Funcion para mostrar Puntaje
 def mostrar_puntaje(x, y):
     tabla = fuente.render(f"Puntaje: {puntaje}", True, (0, 0, 255))
+    pantalla.blit(tabla, (x, y))
+
+def mostrar_puntaje_maximo(x, y):
+    tabla = fuente.render(f"Puntaje Maximo: {puntaje_maximo}", True, (255, 255, 255))
     pantalla.blit(tabla, (x, y))
 
 #! Funcion del Jugador - Submarino
@@ -96,6 +101,19 @@ def hay_colision(x_1, y_1, x_2, y_2):
     else:
         return False
 
+def actualizar_ubicacion_enemigo():
+    global enemigo_x, enemigo_y, cantidad_enemigos        
+    for i in range(cantidad_enemigos):
+        enemigo_x[i] = random.randint(500, 736)
+        enemigo_y[i] = random.randint(0, 536)
+
+def reiniciar_juego():
+    global submarino_y, puntaje, game_over
+    submarino_y = 268
+    puntaje = 0
+    game_over = False
+    actualizar_ubicacion_enemigo()
+
 #! Loop del menu
 menu_abierto = True
 
@@ -109,7 +127,9 @@ while menu_abierto:
     #! Background de la pantalla
     pantalla.fill((0, 0, 240))
     texto_inicial()
-        #! Iterar eventos
+    mostrar_puntaje_maximo(puntaje_x, puntaje_y )
+    
+    #! Iterar eventos
     for evento in pygame.event.get():
 
         #! Cerrar Juego
@@ -119,8 +139,9 @@ while menu_abierto:
         
         #! Presionar Teclas
         if evento.type == pygame.KEYDOWN: #? Verifico si alguna tecla fue presionada
+            if evento.key == pygame.K_RETURN and game_over == True:
+                reiniciar_juego()
             if evento.key == pygame.K_RETURN :
-                print("Me ejecute")
                 menu_abierto = False
                 se_ejecuta = True
 
@@ -164,26 +185,24 @@ while menu_abierto:
             #! Mantener submarino en pantalla
             if submarino_y <= 0: #? Evito que el submarino exceda el limite superior
                 submarino_y = 0
-
             elif submarino_y >= 536: #? Evito que el submarino exceda el limite inferior
                 submarino_y = 536
 
             #! Actualizar ubicacion enemigo
             for indice in range(cantidad_enemigos): #? Parea poder acceder al enemigo indicado por su indice
                 if enemigo_x[indice] < 74:
+                    #! GAME OVER
                     for p in range(cantidad_enemigos):
                         enemigo_x[p] = 2000
                     game_over = True
-                    #texto_final()
-                    break #? Final del JUEGO
+                    break 
                 enemigo_y[indice] += enemigo_y_cambio[indice]
 
             #! Mantener enemigo en pantalla
-                if enemigo_y[indice] <= 0: #? Evito que el submarino exceda el limite superior
+                if enemigo_y[indice] <= 0: #? Evito que el enemigo exceda el limite superior
                     enemigo_y_cambio[indice] = 0.27
                     enemigo_x[indice] += enemigo_x_cambio[indice]
-
-                elif enemigo_y[indice] >= 536: #? Evito que el submarino exceda el limite inferior
+                elif enemigo_y[indice] >= 536: #? Evito que el enemigoexceda el limite inferior
                     enemigo_y_cambio[indice] = -0.27
                     enemigo_x[indice] += enemigo_x_cambio[indice]
 
@@ -210,14 +229,23 @@ while menu_abierto:
                 disparar_bala(bala_x, bala_y)
                 bala_x += bala_x_cambio
 
-
             submarino(submarino_x, submarino_y)
             mostrar_puntaje(puntaje_x, puntaje_y )
             if game_over:
                 texto_final()
+                #! Iterar eventos
+                for evento in pygame.event.get():
+                    
+                    #! Presionar Teclas
+                    if evento.type == pygame.KEYDOWN: #? Verifico si alguna tecla fue presionada
+                        if evento.key == pygame.K_RETURN :       
+                            if puntaje > puntaje_maximo:
+                                puntaje_maximo = puntaje
+                            menu_abierto = True
+                            se_ejecuta = False
 
             pygame.display.update()
-            
+
     pygame.display.update()
                 
 
